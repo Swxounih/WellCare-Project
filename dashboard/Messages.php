@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Notifications - Well Care Pharmacy</title>
+<title>Messages - Well Care Pharmacy</title>
 
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 
@@ -18,21 +18,23 @@
   --bg:#f0f0f0;
   --white:#ffffff;
   --text:#111;
+  --muted:#777;
   --border:#dfeee6;
 }
 
 body{
   font-family:'DM Sans',sans-serif;
   background:var(--bg);
+  color:var(--text);
 }
 
-/* PAGE */
+/* PAGE WRAP */
 .page{
   padding:30px 40px;
 }
 
 /* CARD */
-.notifications-card{
+.messages-card{
   background:#fff;
   border:1px solid var(--border);
   border-radius:8px;
@@ -40,7 +42,7 @@ body{
 }
 
 /* HEADER */
-.notifications-header{
+.messages-header{
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -48,14 +50,15 @@ body{
   border-bottom:1px solid var(--border);
 }
 
-.notifications-title{
+.messages-title{
   display:flex;
   align-items:center;
   gap:10px;
   color:var(--green);
+  font-weight:500;
 }
 
-.notifications-title svg{
+.messages-title svg{
   width:18px;
   height:18px;
   stroke:currentColor;
@@ -63,13 +66,19 @@ body{
   stroke-width:2;
 }
 
-.notifications-actions{
+.messages-actions{
   display:flex;
   align-items:center;
   gap:14px;
 }
 
-.notifications-actions svg{
+.messages-actions span{
+  color:var(--green);
+  font-size:13px;
+  cursor:pointer;
+}
+
+.messages-actions svg{
   width:20px;
   height:20px;
   stroke:var(--green);
@@ -78,18 +87,23 @@ body{
 }
 
 /* LIST */
-.notifications-list{
+.messages-list{
   background:#fafafa;
 }
 
 /* ITEM */
-.notification-item{
+.message-item{
   display:flex;
   align-items:center;
   gap:16px;
   padding:18px 20px;
   border-bottom:1px solid var(--border);
   background:#fff;
+  transition:0.2s;
+}
+
+.message-item:hover{
+  background:#f7fbf9;
 }
 
 /* CHECKBOX */
@@ -110,6 +124,7 @@ body{
   justify-content:center;
 }
 
+/* ICON */
 .msg-avatar svg{
   width:32px;
   height:32px;
@@ -118,7 +133,7 @@ body{
   stroke-width:2;
 }
 
-/* CONTENT */
+/* NAME + DATE */
 .msg-content{
   flex:1;
   display:flex;
@@ -137,42 +152,10 @@ body{
   color:var(--green);
 }
 
-/* BOTTOM BAR */
-.notifications-bottom{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:16px 20px;
-  background:#fff;
-  border-top:1px solid var(--border);
-}
-
-.bottom-left{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  color:var(--green);
-  font-size:14px;
-}
-
-.delete-btn{
-  padding:8px 20px;
-  border:none;
-  border-radius:8px;
-  background:var(--green-btn);
-  color:#fff;
-  font-size:13px;
-  cursor:pointer;
-}
-
-.delete-btn:hover{
-  background:var(--green-dark);
-}
-
 /* RESPONSIVE */
 @media(max-width:700px){
   .page{padding:20px;}
-  .msg-content{flex-direction:column;align-items:flex-start;}
+  .msg-content{flex-direction:column;align-items:flex-start;gap:4px;}
 }
 </style>
 </head>
@@ -181,18 +164,20 @@ body{
 
 <div class="page">
 
-  <div class="notifications-card">
+  <!-- nav here -->
+  <div class="messages-card">
 
     <!-- HEADER -->
-    <div class="notifications-header">
-      <div class="notifications-title">
+    <div class="messages-header">
+      <div class="messages-title">
         <svg viewBox="0 0 24 24">
           <path d="M15 5L8 12L15 19"></path>
         </svg>
-        <span>Notifications</span>
+        <span>Messages</span>
       </div>
 
-      <div class="notifications-actions">
+      <div class="messages-actions">
+        <span>Edit</span>
         <svg viewBox="0 0 24 24">
           <path d="M21 11.5c0 4.1-4 7.5-9 7.5-1.2 0-2.3-.2-3.4-.6L4 20l1.4-3.6C4.5 15 3 13.3 3 11.5 3 7.4 7 4 12 4s9 3.4 9 7.5Z"></path>
         </svg>
@@ -200,73 +185,73 @@ body{
     </div>
 
     <!-- LIST -->
-    <div class="notifications-list">
+    <div class="messages-list">
 
-      <div class="notification-item">
+      <!-- ITEM -->
+      <div class="message-item">
         <input type="checkbox" class="msg-check">
+
         <div class="msg-avatar">
           <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M4 20c2-4 6-5 8-5s6 1 8 5"/>
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M4 20c2-4 6-5 8-5s6 1 8 5"></path>
           </svg>
         </div>
+
         <div class="msg-content">
           <div class="msg-name">Yasmien De Guzman</div>
           <div class="msg-date">03/09/26</div>
         </div>
       </div>
 
-      <div class="notification-item">
+      <div class="message-item">
         <input type="checkbox" class="msg-check">
+
         <div class="msg-avatar">
           <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M4 20c2-4 6-5 8-5s6 1 8 5"/>
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M4 20c2-4 6-5 8-5s6 1 8 5"></path>
           </svg>
         </div>
+
         <div class="msg-content">
-          <div class="msg-name">Arnel Cruz</div>
+          <div class="msg-name">Armel Cruz</div>
           <div class="msg-date">03/09/26</div>
         </div>
       </div>
 
-      <div class="notification-item">
+      <div class="message-item">
         <input type="checkbox" class="msg-check">
+
         <div class="msg-avatar">
           <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M4 20c2-4 6-5 8-5s6 1 8 5"/>
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M4 20c2-4 6-5 8-5s6 1 8 5"></path>
           </svg>
         </div>
+
         <div class="msg-content">
           <div class="msg-name">Kenji Celestino</div>
           <div class="msg-date">03/09/26</div>
         </div>
       </div>
 
-      <div class="notification-item">
+      <div class="message-item">
         <input type="checkbox" class="msg-check">
+
         <div class="msg-avatar">
           <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M4 20c2-4 6-5 8-5s6 1 8 5"/>
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M4 20c2-4 6-5 8-5s6 1 8 5"></path>
           </svg>
         </div>
+
         <div class="msg-content">
           <div class="msg-name">Kurt Palavino</div>
           <div class="msg-date">03/09/26</div>
         </div>
       </div>
 
-    </div>
-
-    <!-- BOTTOM -->
-    <div class="notifications-bottom">
-      <div class="bottom-left">
-        <input type="checkbox" class="msg-check">
-        <span>All</span>
-      </div>
-      <button class="delete-btn">Delete</button>
     </div>
 
   </div>

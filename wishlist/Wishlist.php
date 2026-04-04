@@ -1,9 +1,63 @@
+<?php
+session_start();
+include(__DIR__ . '/../config/db_connection.php');
+include(__DIR__ . '/../config/auth_functions.php');
+include(__DIR__ . '/../config/helpers.php');
+
+requireLogin();
+
+$user_id = getCurrentUserId();
+
+// Get wishlist items
+$stmt = $conn->prepare("SELECT w.wishlist_id, w.product_id, p.name, p.price, p.image FROM wishlist w JOIN products p ON w.product_id = p.product_id WHERE w.user_id = ? ORDER BY w.added_at DESC");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$wishlist_items = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// Handle remove from wishlist
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_item'])) {
+    $wishlist_id = (int)$_POST['remove_item'];
+    $stmt = $conn->prepare("DELETE FROM wishlist WHERE wishlist_id = ? AND user_id = ?");
+    $stmt->bind_param("ii", $wishlist_id, $user_id);
+    $stmt->execute();
+    $stmt->close();
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit;
+}
+
+// Handle add from wishlist to cart
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
+    $product_id = (int)$_POST['add_to_cart'];
+    
+    // Check if product already in cart
+    $stmt = $conn->prepare("SELECT cartID, quantity FROM cart WHERE user_id = ? AND product_id = ?");
+    $stmt->bind_param("ii", $user_id, $product_id);
+    $stmt->execute();
+    $existing = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    
+    if ($existing) {
+        $new_qty = $existing['quantity'] + 1;
+        $stmt = $conn->prepare("UPDATE cart SET quantity = ? WHERE cartID = ?");
+        $stmt->bind_param("ii", $new_qty, $existing['cartID']);
+    } else {
+        $stmt = $conn->prepare("INSERT INTO cart (user_id, product_id, quantity, added_at) VALUES (?, ?, 1, NOW())");
+        $stmt->bind_param("ii", $user_id, $product_id);
+    }
+    $stmt->execute();
+    $stmt->close();
+    
+    header("Location: " . $_SERVER['REQUEST_URI'] . (strpos($_SERVER['REQUEST_URI'], '?') ? '&' : '?') . "added=1");
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cart - Well Care Pharmacy</title>
+<title>Wishlist - Well Care Pharmacy</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 
 <style>
@@ -282,7 +336,7 @@ body{
   <div class="wishlist-wrap">
 
     <div class="wishlist-top">
-      <a href="Homepage.php" class="wishlist-back">
+      <a href="/WellCare%20Project/dashboard/Homepage.php" class="wishlist-back">
         <svg viewBox="0 0 24 24">
           <path d="M15 5L8 12L15 19"></path>
         </svg>
@@ -302,83 +356,45 @@ body{
     </div>
 
     <div class="wishlist-list">
+      <?php if (!empty($wishlist_items)): ?>
+        <?php foreach ($wishlist_items as $item): ?>
+        <div class="wishlist-item">
+          <div class="item-image">
+            <img src="/WellCare%20Project/assets/ProductsImage/<?php echo safe($item['image']); ?>" alt="<?php echo safe($item['name']); ?>">
+          </div>
 
-      <div class="wishlist-item">
-        <div class="check-wrap">
-          <input class="item-check" type="checkbox">
+          <div class="item-info">
+            <div class="item-name"><?php echo safe($item['name']); ?></div>
+            <div class="item-price">₱<?php echo formatCurrency($item['price']); ?></div>
+          </div>
+
+          <div class="item-actions">
+            <form method="POST" style="display: flex; gap: 8px;">
+              <button type="submit" name="add_to_cart" value="<?php echo $item['product_id']; ?>" class="qty-btn" title="Add to Cart" style="color: #28a745; font-size: 20px;">🛒</button>
+              <button type="submit" name="remove_item" value="<?php echo $item['wishlist_id']; ?>" class="qty-btn" title="Remove from Wishlist" style="color: #dc3545; font-size: 20px;">✕</button>
+            </form>
+          </div>
         </div>
-
-        <div class="item-image">
-          <img src="ProductsImage/Product.png" alt="Biogesic Caplet">
+        <?php endforeach; ?>
+      <?php else: ?>
+        <div style="text-align: center; padding: 40px; color: #666;">
+          <p>Your wishlist is empty</p>
+          <a href="/WellCare%20Project/dashboard/Homepage.php" class="checkout-btn" style="display: inline-block; text-decoration: none; margin-top: 15px;">Continue Shopping</a>
         </div>
-
-        <div class="item-info">
-          <div class="item-name">Biogesic Caplet 500mg 30s – Everyday Pain and Fever Support</div>
-          <div class="item-price">₱108.00</div>
-        </div>
-
-        <div class="item-actions">
-          <button class="qty-btn">−</button>
-          <div class="qty-box">0</div>
-          <button class="qty-btn">+</button>
-        </div>
-      </div>
-
-      <div class="wishlist-item">
-        <div class="check-wrap">
-          <input class="item-check" type="checkbox">
-        </div>
-
-        <div class="item-image">
-          <img src="ProductsImage/Product2.jpg" alt="Paracetamol Biogesic Syrup">
-        </div>
-
-        <div class="item-info">
-          <div class="item-name">Paracetamol Biogesic 250mg/5ml Melon-flavored Syrup 60ml</div>
-          <div class="item-price">₱156.00</div>
-        </div>
-
-        <div class="item-actions">
-          <button class="qty-btn">−</button>
-          <div class="qty-box">0</div>
-          <button class="qty-btn">+</button>
-        </div>
-      </div>
-
-      <div class="wishlist-item">
-        <div class="check-wrap">
-          <input class="item-check" type="checkbox">
-        </div>
-
-        <div class="item-image">
-          <img src="ProductsImage/Product4.png" alt="Fern-C Gold">
-        </div>
-
-        <div class="item-info">
-          <div class="item-name">Fern-C Gold 27+3 Pack</div>
-          <div class="item-price">₱371.25</div>
-        </div>
-
-        <div class="item-actions">
-          <button class="qty-btn">−</button>
-          <div class="qty-box">0</div>
-          <button class="qty-btn">+</button>
-        </div>
-      </div>
-
+      <?php endif; ?>
     </div>
 
+    <?php if (!empty($wishlist_items)): ?>
     <div class="wishlist-summary">
       <div class="summary-left">
-        <input class="item-check" type="checkbox">
-        <span>All</span>
+        <?php echo count($wishlist_items); ?> item(s) in wishlist
       </div>
 
       <div class="summary-right">
-        <div class="total-price">₱0.00</div>
-        <button class="checkout-btn">Check Out (0)</button>
+        <a href="/WellCare%20Project/dashboard/Cart.php" class="checkout-btn" style="text-decoration: none;">View Cart</a>
       </div>
     </div>
+    <?php endif; ?>
 
   </div>
 </div>

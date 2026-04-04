@@ -1,86 +1,104 @@
 <?php
-// session_start();
+session_start();
 
-// if (isset($_SESSION['customerID'])) {
-//     header('Location: IPT_Projects_Site/dashboard/Homepage.php');
-//     exit();
-// }
+if (isset($_SESSION['user_id'])) {
+  header('Location: dashboard/Homepage.php');
+  exit();
+}
 
-// include(__DIR__ . '/../config/db_connection.php');
+include(__DIR__ . '/../config/db_connection.php');
 
-// $error = "";
+$error = "";
 
-// if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-//     $email = trim($_POST['email']);
-//     $password = trim($_POST['password']);
+  $emailOrUsername = trim($_POST['email_or_username']);
+  $password = trim($_POST['password']);
 
-//     // =========================
-//     // EMAIL VALIDATION
-//     // =========================
-//     if (empty($email)) {
-//         $error = "Email is required.";
-//     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-//         $error = "Invalid email format.";
-//     }
+  // =========================
+  // EMAIL/USERNAME VALIDATION
+  // =========================
+  if (empty($emailOrUsername)) {
+    $error = "Email or username is required.";
+  }
 
-//     // =========================
-//     // PASSWORD VALIDATION
-//     // =========================
-//     elseif (empty($password)) {
-//         $error = "Password is required.";
-//     } elseif (strlen($password) < 8 || strlen($password) > 20) {
-//         $error = "Password must be 8–20 characters.";
-//     } elseif (!preg_match('/[A-Z]/', $password)) {
-//         $error = "Password must contain at least one uppercase letter.";
-//     } elseif (!preg_match('/[a-z]/', $password)) {
-//         $error = "Password must contain at least one lowercase letter.";
-//     } elseif (!preg_match('/[0-9]/', $password)) {
-//         $error = "Password must contain at least one number.";
-//     } elseif (preg_match('/[;:\'",\/|]/', $password)) {
-//         $error = "Password contains invalid special characters.";
-//     } elseif (preg_match('/\s/', $password)) {
-//         $error = "Password must not contain spaces.";
-//     }
+  // =========================
+  // PASSWORD VALIDATION
+  // =========================
+  elseif (empty($password)) {
+    $error = "Password is required.";
+  } elseif (strlen($password) < 8 || strlen($password) > 20) {
+    $error = "Password must be 8–20 characters.";
+  } elseif (!preg_match('/[A-Z]/', $password)) {
+    $error = "Password must contain at least one uppercase letter.";
+  } elseif (!preg_match('/[a-z]/', $password)) {
+    $error = "Password must contain at least one lowercase letter.";
+  } elseif (!preg_match('/[0-9]/', $password)) {
+    $error = "Password must contain at least one number.";
+  } elseif (preg_match('/[;:\'",\/|]/', $password)) {
+    $error = "Password contains invalid special characters.";
+  } elseif (preg_match('/\s/', $password)) {
+    $error = "Password must not contain spaces.";
+  }
 
-//     // =========================
-//     // LOGIN LOGIC
-//     // =========================
-//     else {
+  // =========================
+  // LOGIN LOGIC
+  // =========================
+  else {
 
-//         $email = mysqli_real_escape_string($conn, $email);
+    // Determine if input is email or username
+    $isEmail = filter_var($emailOrUsername, FILTER_VALIDATE_EMAIL);
+    
+    // Use prepared statement to prevent SQL injection
+    if ($isEmail) {
+      // Search by email
+      $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+    } else {
+      // Search by username
+      $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
+    }
+    
+    if (!$stmt) {
+      $error = "Database error. Please try again later.";
+    } else {
+      $stmt->bind_param("s", $emailOrUsername);
+      $stmt->execute();
+      $result = $stmt->get_result();
 
-//         $query = "SELECT * FROM customers WHERE email = '$email'";
-//         $result = mysqli_query($conn, $query);
+      if ($result && $result->num_rows > 0) {
 
-//         if ($result && mysqli_num_rows($result) > 0) {
+        $user = $result->fetch_assoc();
 
-//             $user = mysqli_fetch_assoc($result);
-
-//             if (password_verify($password, $user['password'])) {
-//                 $_SESSION['customerID'] = $user['customerID'];
-//                 header('Location: dashboard/Homepage.php');
-//                 exit();
-//             } else {
-//                 $error = "Invalid email or password.";
-//             }
-
-//         } else {
-//             $error = "Invalid email or password.";
-//         }
-//     }
-// }
+        if (password_verify($password, $user['password'])) {
+          // Regenerate session ID to prevent session fixation attacks
+          session_regenerate_id(true);
+          $_SESSION['user_id'] = $user['user_id'];
+          header('Location: /WellCare%20Project/dashboard/Homepage.php');
+          exit();
+        } else {
+          $error = "Invalid email/username or password.";
+        }
+      } else {
+        $error = "Invalid email/username or password.";
+      }
+      $stmt->close();
+    }
+  }
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sign In – Well Care Pharmacy</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
@@ -99,7 +117,8 @@
       --link: #2c2cf7;
     }
 
-    html, body {
+    html,
+    body {
       height: 100%;
     }
 
@@ -121,8 +140,15 @@
     }
 
     @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .brand {
@@ -163,8 +189,15 @@
     }
 
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(18px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .heading {
@@ -281,46 +314,53 @@
     }
   </style>
 </head>
+
 <body>
 
   <nav class="navbar">
     <div class="brand">
-      <img src="assets/New-logo.png" alt="logo" class="brand-logo"/>  
-    <span class="brand-name">Well Care Pharmacy</span>
+      <img src="../assets/new-logo.png" alt="logo" class="brand-logo" />
+      <span class="brand-name">Well Care Pharmacy</span>
     </div>
   </nav>
 
   <div class="page-center">
     <div class="card">
       <h1 class="heading">Sign in</h1>
-    
-    
-      <form action="Sign_inp.php" method="post">
-      <div class="field">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email"/>
-      </div>
-
-      <div class="field">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password"/>
-      </div>
-
-      <button class="btn-signin" type="submit">Sign In</button>
-
-    </form>
 
 
-      
+      <form method="post">
+        <?php if (!empty($error)): ?>
+        <div style="background-color: #ffebee; color: #c62828; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; border-left: 4px solid #c62828;">
+          <?php echo htmlspecialchars($error); ?>
+        </div>
+        <?php endif; ?>
+        <div class="field">
+          <label for="email_or_username">Email or Username</label>
+          <input type="text" id="email_or_username" name="email_or_username" placeholder="you@example.com or johndoe" autocomplete="username" value="<?php echo htmlspecialchars($emailOrUsername ?? ''); ?>" required />
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required />
+        </div>
+
+        <button class="btn-signin" type="submit">Sign In</button>
+
+      </form>
+
+
+
       <div class="divider">
         <span>or</span>
       </div>
 
       <p class="signup-row">
-        Don't have an account? <a href="auth/Sign_up.php">Sign Up</a>
+        Don't have an account? <a href="Sign_up.php">Sign Up</a>
       </p>
     </div>
   </div>
 
 </body>
+
 </html>

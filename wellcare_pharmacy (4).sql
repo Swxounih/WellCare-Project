@@ -1,9 +1,8 @@
--- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 02, 2026 at 04:59 PM
+-- Generation Time: Apr 04, 2026 at 11:59 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -44,9 +43,20 @@ CREATE TABLE `cart` (
 CREATE TABLE `categories` (
   `category_id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
+  `description` varchar(255) NOT NULL,
   `image` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`category_id`, `name`, `description`, `image`, `created_at`) VALUES
+(1, 'Medicines & Treatments', 'Over-the-counter medicines and pain relief', 'Medicine.jpg', '2026-04-04 09:22:14'),
+(2, 'Baby Kids', 'Baby care products and children wellness', 'BabyKids.jpg', '2026-04-04 09:22:14'),
+(3, 'Personal Care', 'Skincare and personal hygiene products', 'PersonalCare.jpg', '2026-04-04 09:22:14'),
+(4, 'Medical Supplies', 'Medical equipment and first aid supplies', 'MedicalSupp.jpg', '2026-04-04 09:22:14');
 
 -- --------------------------------------------------------
 
@@ -95,6 +105,14 @@ CREATE TABLE `orders` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`order_id`, `user_id`, `orderDate`, `totalAmount`, `status`, `shipping_address`, `payment_method`, `updated_at`) VALUES
+(1, 2, '2026-04-04 09:57:01', 396.00, 'To Pay', '0183 BAAY EAST LINGAYEN PANGASINAN', 'Cash on Delivery', '2026-04-04 09:57:01'),
+(2, 2, '2026-04-04 09:58:51', 250.80, 'To Pay', '0183 BAAY EAST LINGAYEN PANGASINAN', 'Cash on Delivery', '2026-04-04 09:58:51');
+
 -- --------------------------------------------------------
 
 --
@@ -108,6 +126,15 @@ CREATE TABLE `order_items` (
   `quantity` int(11) NOT NULL,
   `price` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `order_items`
+--
+
+INSERT INTO `order_items` (`order_item_id`, `order_id`, `product_id`, `quantity`, `price`) VALUES
+(1, 1, 3, 3, 120.00),
+(2, 2, 3, 1, 120.00),
+(3, 2, 1, 1, 108.00);
 
 -- --------------------------------------------------------
 
@@ -127,6 +154,32 @@ CREATE TABLE `products` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `products`
+--
+
+INSERT INTO `products` (`product_id`, `category_id`, `name`, `description`, `price`, `stock`, `image`, `is_featured`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Paracetamol Biogesic 500mg Tablet', 'Paracetamol Biogesic 500mg 10 Tablets - Everyday Pain and Fever Support', 108.00, 150, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(2, 1, 'Paracetamol Biogesic Syrup 60ml', 'Paracetamol Biogesic for Kids 250mg/5ml Syrup 60ml - Melon Flavor', 156.00, 120, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(3, 1, 'Neozep Forte Tablet', 'Neozep Forte 10 Tablet Strips - Multi-Symptom Relief for Colds, Fever & Flu', 120.00, 200, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(4, 1, 'Bioflu Tablet 100s', 'Bioflu Phenylephrine HCl 100 Film-Coated Tablets - Cold & Flu Relief', 185.00, 100, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(5, 1, 'Fern-C Gold 30 Capsules', 'Fern-C Gold 27+3 Pack - Vitamin C with Cholecalciferol & Zinc Capsules', 371.25, 180, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(6, 2, 'Cetaphil Baby Wash 400ml', 'Cetaphil Baby Moisturizing Bath & Wash 400ml - For Sensitive Skin', 606.00, 75, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(7, 3, 'NIVEA Creme 75ml', 'NIVEA Creme 75ml - All-Purpose Moisturizer for Dry Skin', 125.00, 200, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(8, 3, 'NIVEA Body Lotion 400ml', 'NIVEA In-Shower Body Lotion 400ml - Moisturizes While Showering', 195.00, 150, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(9, 3, 'NIVEA Soft Cream 200ml', 'NIVEA Soft Cream 200ml - Light Moisturizer for All Skin Types', 155.00, 120, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(10, 4, 'Medical Oxygen Tank 10L', 'Portable Oxygen Tank 10 Liters with Regulator - For Emergency Use', 1850.00, 30, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(11, 4, 'Blood Pressure Monitor Digital', 'Automatic Digital Blood Pressure Monitor - Easy Home Monitoring', 899.00, 45, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(12, 4, 'First Aid Kit Complete', 'Complete First Aid Kit with Medical Supplies and Emergency Essentials', 450.00, 60, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(13, 1, 'Tramadol HCl Tablets 50mg', 'Tramadol Hydrochloride 50mg Tablets - Pain Relief (Prescription Required)', 280.00, 40, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(14, 1, 'Amoxicillin Capsule 500mg', 'Amoxicillin 500mg Capsules - Antibiotic (Prescription Required)', 195.00, 50, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(15, 1, 'Cough Syrup 120ml', 'Cough Syrup 120ml - Effective Relief from Dry & Wet Cough', 89.50, 100, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(16, 1, 'Multivitamin Plus 30 Tablets', 'Multivitamin Plus Iron & Calcium 30 Tablets - Daily Supplement', 245.00, 180, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(17, 1, 'Aspirin 100 Tablets', 'Aspirin 500mg 100 Tablets - For Headache & Pain Relief', 125.00, 200, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(18, 1, 'Antacid Tablets 20s', 'Antacid Tablets 20 Pieces - Quick Relief from Heartburn', 45.00, 250, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(19, 1, 'Vitamin D3 Soft Gels 60s', 'Vitamin D3 1000 IU 60 Soft Gels - Bone & Immune Support', 325.00, 150, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14'),
+(20, 3, 'Skin Care Essentials Bundle', 'Complete skin care package with moisturizers and cleansers', 285.00, 95, '0', 0, '2026-04-04 09:22:14', '2026-04-04 09:22:14');
 
 -- --------------------------------------------------------
 
@@ -150,6 +203,14 @@ CREATE TABLE `users` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`user_id`, `fullname`, `username`, `email`, `password`, `phone`, `address`, `gender`, `civil_status`, `birthdate`, `profile_img`, `created_at`, `updated_at`) VALUES
+(1, '', '', 'armel@gmail.com', 'Password@123', '', '', '', '', '0000-00-00', NULL, '2026-04-03 16:49:49', '2026-04-03 16:55:17'),
+(2, 'Armel Cruz', 'armel123', 'armelcruz831@gmail.com', '$2y$10$t347wMORLrg0Xt67ilcYteLkpJepCxO4WqUuSy0Msr5l3H7Wsf5be', '09318388423', '0183 BAAY EAST LINGAYEN PANGASINAN', 'Male', 'Married', '2005-07-15', NULL, '2026-04-04 06:18:54', '2026-04-04 06:18:54');
+
 -- --------------------------------------------------------
 
 --
@@ -162,6 +223,14 @@ CREATE TABLE `wishlist` (
   `product_id` int(11) NOT NULL,
   `added_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `wishlist`
+--
+
+INSERT INTO `wishlist` (`wishlist_id`, `user_id`, `product_id`, `added_at`) VALUES
+(3, 2, 3, '2026-04-04 09:54:59'),
+(4, 2, 1, '2026-04-04 09:58:21');
 
 --
 -- Indexes for dumped tables
@@ -242,13 +311,13 @@ ALTER TABLE `wishlist`
 -- AUTO_INCREMENT for table `cart`
 --
 ALTER TABLE `cart`
-  MODIFY `cartID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `cartID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -266,31 +335,31 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `order_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `wishlist`
 --
 ALTER TABLE `wishlist`
-  MODIFY `wishlist_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `wishlist_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables
@@ -300,7 +369,7 @@ ALTER TABLE `wishlist`
 -- Constraints for table `cart`
 --
 ALTER TABLE `cart`
-  ADD CONSTRAINT `fk_cart_cust` FOREIGN KEY (`product_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_cart_cust` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_cart_prod` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --

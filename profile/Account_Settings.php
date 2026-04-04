@@ -298,7 +298,7 @@ footer{
 <body>
 
 <div class="page">
-
+  <!-- nav here -->
   <div class="settings-wrap">
     <div class="settings-card">
 

@@ -330,40 +330,8 @@ footer{
 <div class="page">
 
   <div class="user-header">
-    <div class="top-bar">
-      <a href="Homepage.php" class="back-btn">←</a>
-
-      <div class="top-icons">
-
-        <a href="#" aria-label="Wishlist">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2 4 4 0 0 1 7 2c0 5.5-7 10-7 10z"/>
-          </svg>
-        </a>
-
-        <a href="#" aria-label="Orders">
-          <svg viewBox="0 0 24 24">
-            <path d="M6 8h12l-1 11H7L6 8z"/>
-            <path d="M9 8a3 3 0 0 1 6 0"/>
-          </svg>
-        </a>
-
-        <a href="#" aria-label="Cart">
-          <svg viewBox="0 0 24 24">
-            <circle cx="9" cy="19" r="1.5"/>
-            <circle cx="17" cy="19" r="1.5"/>
-            <path d="M3 4h2l2.2 10h10.8l2-7H7.5"/>
-          </svg>
-        </a>
-
-        <a href="#" aria-label="Profile">
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M4 20c2-4 6-5 8-5s6 1 8 5"/>
-          </svg>
-        </a>
-
-      </div>
+    <div>
+      <!-- nvigation here using reusable nav -->
     </div>
 
     <div class="user-top">

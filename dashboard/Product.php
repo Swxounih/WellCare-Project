@@ -1,9 +1,70 @@
+<?php
+session_start();
+include(__DIR__ . '/../config/db_connection.php');
+include(__DIR__ . '/../config/auth_functions.php');
+include(__DIR__ . '/../config/helpers.php');
+
+requireLogin();
+
+// Get product ID from URL
+$product_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+// Get product details
+$stmt = $conn->prepare("SELECT p.product_id, p.name, p.description, p.price, p.stock, p.image, p.category_id, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.category_id WHERE p.product_id = ?");
+$stmt->bind_param("i", $product_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$product = $result->fetch_assoc();
+$stmt->close();
+
+if (!$product) {
+    header("Location: /WellCare%20Project/dashboard/Homepage.php");
+    exit;
+}
+
+// Get "You May Also Like" recommendations (same category, different product)
+$stmt = $conn->prepare("SELECT product_id, name, price, image FROM products WHERE category_id = ? AND product_id != ? LIMIT 4");
+$stmt->bind_param("ii", $product['category_id'], $product_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$recommendations = $result->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
+// Handle Add to Cart
+$cart_message = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
+    $user_id = getCurrentUserId();
+    $quantity = (int)($_POST['quantity'] ?? 1);
+    
+    $stmt = $conn->prepare("INSERT INTO cart (user_id, product_id, quantity, added_at) VALUES (?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE quantity = quantity + ?");
+    $stmt->bind_param("iiii", $user_id, $product_id, $quantity, $quantity);
+    if ($stmt->execute()) {
+        $cart_message = "✅ Added to cart successfully!";
+    }
+    $stmt->close();
+}
+
+// Handle Add to Wishlist
+$wishlist_message = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_wishlist'])) {
+    $user_id = getCurrentUserId();
+    
+    $stmt = $conn->prepare("INSERT INTO wishlist (user_id, product_id, added_at) VALUES (?, ?, NOW())");
+    $stmt->bind_param("ii", $user_id, $product_id);
+    if ($stmt->execute()) {
+        $wishlist_message = "❤️ Added to wishlist!";
+    } else {
+        $wishlist_message = "Already in wishlist";
+    }
+    $stmt->close();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title><?php echo safe($product['name']); ?> - Well Care Pharmacy</title>
     <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -454,6 +515,10 @@ footer{
 </style>
 </head>
 <body>
+<!-- Include Navigation Bar -->
+<!-- <?php include(__DIR__ . '/../components/navbar.php'); ?> -->
+
+<!-- nav here -->
     <div class="page">
   <div class="product-page">
     <div class="product-container">
@@ -466,28 +531,44 @@ footer{
 
           <div class="hero">
             <div class="main-image-box">
-              <img src="ProductsImage/Product.png" alt="Biogesic">
+              <img src="/WellCare%20Project/assets/ProductsImage/<?php echo safe($product['image']); ?>" alt="<?php echo safe($product['name']); ?>">
             </div>
 
             <div class="product-info">
-              <h1>Biogesic Caplet 500mg 30s – Everyday Pain and Fever Support</h1>
-              <div class="price">₱108.00</div>
+              <h1><?php echo safe($product['name']); ?></h1>
+              <div class="price">₱<?php echo formatCurrency($product['price']); ?></div>
 
-              <button class="wishlist-btn">♡ Add to Wishlist</button>
-
-              <div class="about-title">About the Product</div>
-              <p class="about-text">
-                Biogesic Caplet contains paracetamol, a widely used ingredient for the relief of mild to moderate pain and fever when taken as directed.
-              </p>
-
-              <div class="buy-row">
-                <div class="qty-wrap">
-                  <button class="qty-btn">−</button>
-                  <div class="qty-box">0</div>
-                  <button class="qty-btn">+</button>
+              <!-- Messages -->
+              <?php if ($cart_message): ?>
+                <div style="background: #d4edda; color: #155724; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 14px;">
+                  <?php echo $cart_message; ?>
                 </div>
-                <button class="cart-btn">Add To Cart</button>
-              </div>
+              <?php endif; ?>
+              <?php if ($wishlist_message): ?>
+                <div style="background: #d4edda; color: #155724; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 14px;">
+                  <?php echo $wishlist_message; ?>
+                </div>
+              <?php endif; ?>
+
+              <form method="POST" style="display: contents;">
+                <button type="submit" name="add_to_wishlist" class="wishlist-btn">♡ Add to Wishlist</button>
+
+                <div class="about-title">About the Product</div>
+                <p class="about-text">
+                  <?php echo nl2br(safe($product['description'])); ?>
+                </p>
+
+                <div style="font-size: 14px; color: <?php echo $product['stock'] > 0 ? '#28a745' : '#dc3545'; ?>; margin-bottom: 15px;">
+                  <?php echo $product['stock'] > 0 ? '✓ ' . $product['stock'] . ' in stock' : '✗ Out of stock'; ?>
+                </div>
+
+                <div class="buy-row">
+                  <div class="qty-wrap">
+                    <input type="number" name="quantity" class="qty-box" value="1" min="1" max="<?php echo $product['stock']; ?>" style="width: 44px; height: 40px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; text-align: center;" <?php echo $product['stock'] <= 0 ? 'disabled' : ''; ?>>
+                  </div>
+                  <button type="submit" name="add_to_cart" class="cart-btn" <?php echo $product['stock'] <= 0 ? 'disabled' : ''; ?>>Add To Cart</button>
+                </div>
+              </form>
             </div>
           </div>
         </section>
@@ -496,49 +577,23 @@ footer{
           <div class="related-title">You may also like</div>
 
           <div class="related-grid">
-            <div class="product-item active">
-              <div class="thumb"><img src="ProductsImage/Product2.jpg" alt=""></div>
-              <div class="card-name">Paracetamol Biogesic 250mg/5ml Melon-flavored Syrup 60ml</div>
-              <div class="card-price">₱156.00</div>
-              <div class="card-actions">
-                <button class="mini-cart">Add To Cart</button>
-                <button class="mini-buy">Buy</button>
-                <button class="mini-wish">♡</button>
+            <?php if (!empty($recommendations)): ?>
+              <?php foreach ($recommendations as $rec): ?>
+              <div class="product-item">
+                <div class="thumb"><img src="/WellCare%20Project/assets/ProductsImage/<?php echo safe($rec['image']); ?>" alt="<?php echo safe($rec['name']); ?>"></div>
+                <div class="card-name"><?php echo safe($rec['name']); ?></div>
+                <div class="card-price">₱<?php echo formatCurrency($rec['price']); ?></div>
+                <div class="card-actions">
+                  <a href="/WellCare%20Project/dashboard/Product.php?id=<?php echo $rec['product_id']; ?>" style="flex: 1; text-decoration: none;">
+                    <button class="mini-cart" style="width: 100%;">View</button>
+                  </a>
+                  <button class="mini-wish" onclick="addToWishlist(<?php echo $rec['product_id']; ?>)" title="Add to Wishlist">♡</button>
+                </div>
               </div>
-            </div>
-
-            <div class="product-item">
-              <div class="thumb"><img src="ProductsImage/Product3.png" alt=""></div>
-              <div class="card-name">Cetaphil Baby Body Wash & Shampoo 400ml</div>
-              <div class="card-price">₱606.00</div>
-              <div class="card-actions">
-                <button class="mini-cart">Add To Cart</button>
-                <button class="mini-buy">Buy</button>
-                <button class="mini-wish">♡</button>
-              </div>
-            </div>
-
-            <div class="product-item">
-              <div class="thumb"><img src="ProductsImage/Product4.png" alt=""></div>
-              <div class="card-name">Fern-C Gold 27+3 Pack</div>
-              <div class="card-price">₱371.25</div>
-              <div class="card-actions">
-                <button class="mini-cart">Add To Cart</button>
-                <button class="mini-buy">Buy</button>
-                <button class="mini-wish">♡</button>
-              </div>
-            </div>
-
-            <div class="product-item">
-              <div class="thumb"><img src="ProductsImage/Product6.jpg" alt=""></div>
-              <div class="card-name">Bioflu Tablets (20pcs tablets)</div>
-              <div class="card-price">₱136.00</div>
-              <div class="card-actions">
-                <button class="mini-cart">Add To Cart</button>
-                <button class="mini-buy">Buy</button>
-                <button class="mini-wish">♡</button>
-              </div>
-            </div>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <p style="grid-column: 1/-1; text-align: center; color: #666; padding: 20px;">No other products in this category</p>
+            <?php endif; ?>
           </div>
         </section>
       </div>
